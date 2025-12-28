@@ -1,27 +1,39 @@
 export type TerminalState = 
+  | 'OFF' 
   | 'BOOTING' 
   | 'IDLE' 
   | 'INPUT_AMOUNT' 
-  | 'AWAITING_PAYMENT' 
   | 'PROCESSING' 
-  | 'APPROVED' 
-  | 'DECLINED' 
-  | 'ERROR_COMMS'
-  | 'PRINTING';
+  | 'SUCCESS' 
+  | 'ERROR';
 
-export type InteractionMode = 'INSERT' | 'TAP' | 'SWIPE';
-
-export interface LogEntry {
+export interface TransactionLog {
   id: string;
   timestamp: string;
   type: 'REQUEST' | 'RESPONSE' | 'SYSTEM';
   payload: any;
+  status: 'pending' | 'success' | 'error';
 }
 
-export interface TransactionData {
-  amount: number;
+export interface POSConfig {
+  merchantId: string;
   currency: string;
-  traceId: string;
-  panMasked?: string;
-  method?: InteractionMode;
+  networkLatencyMode: boolean;
+  soundEnabled: boolean;
+}
+
+export interface TerminalContextType {
+  currentState: TerminalState;
+  displayMessage: string;
+  inputBuffer: string;
+  logs: TransactionLog[];
+  config: POSConfig;
+  isNetworkBusy: boolean;
+  // Actions
+  powerOn: () => void;
+  resetTerminal: () => void;
+  inputKey: (key: string) => void;
+  toggleNetworkLatency: () => void;
+  toggleSound: () => void;
+  clearLogs: () => void;
 }
