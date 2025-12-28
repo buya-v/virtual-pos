@@ -1,47 +1,122 @@
-import React from 'react';
-import { TerminalShell } from './components/organisms/TerminalShell';
-import { DevControls } from './components/organisms/DevControls';
-import { TransactionHistory } from './components/organisms/TransactionHistory';
+import React, { useState } from 'react';
+import { LCDScreen } from './components/LCDScreen';
+import { PhysicalKeypad } from './components/PhysicalKeypad';
+import { DevPanel } from './components/DevPanel';
+import { Receipt } from './components/Receipt';
+import { usePosLogic } from './hooks/usePosLogic';
+import { CreditCard, Nfc, Smartphone } from 'lucide-react';
+import { clsx } from 'clsx';
 
-const App: React.FC = () => {
+function App() {
+  const {
+    status,
+    inputBuffer,
+    logs,
+    latencyMode,
+    txData,
+    showDiagnostic,
+    setLatencyMode,
+    setShowDiagnostic,
+    handleKeyPress,
+    processPayment
+  } = usePosLogic();
+
+  const [drawerOpen, setDrawerOpen] = useState(true);
+
   return (
-    <div className="min-h-screen bg-gray-100 p-4 md:p-8 font-ui flex flex-col items-center justify-center">
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-200 overflow-hidden font-sans">
       
-      <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Virtual POS</h1>
-        <p className="text-gray-500 mt-2">Hardware Terminal Simulator v1.0</p>
-      </header>
-
-      <main className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Main Stage: The Terminal */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
         
-        {/* Left Column: The Terminal (Center Stage) */}
-        <div className="lg:col-span-5 flex justify-center lg:justify-end order-1 lg:order-1">
-          <div className="sticky top-8">
-            <TerminalShell />
-            <div className="text-center mt-6 text-xs text-gray-400 max-w-[340px]">
-              <p>Keyboard Shortcuts Enabled</p>
-              <p>Use NumPad or Click buttons</p>
-            </div>
-          </div>
+        {/* Receipt Output Area */}
+        <div className="relative w-[320px] h-[60px] mb-[-20px] z-0 overflow-visible">
+          {(status === 'PRINTING' || status === 'APPROVED') && txData && (
+            <Receipt data={txData} approved={status === 'APPROVED'} />
+          )}
         </div>
 
-        {/* Right Column: Controls & Data */}
-        <div className="lg:col-span-7 space-y-6 order-2 lg:order-2">
-          <DevControls />
-          <TransactionHistory />
+        {/* Terminal Chassis */}
+        <div className="relative z-10 w-[320px] bg-terminal-body rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border-t border-white/10 chassis-texture p-4 pb-8">
           
-          <div className="bg-blue-50 border border-blue-100 p-4 rounded-lg text-sm text-blue-800">
-            <strong>How to use:</strong>
-            <ul className="list-disc list-inside mt-2 space-y-1 text-blue-700">
-              <li>Terminal starts in <strong>IDLE</strong> mode.</li>
-              <li>Enter an amount (e.g., 100 for $1.00) and press <strong>ENTER</strong>.</li>
-              <li>When prompt says "PRESENT CARD", click the <strong>Card Reader</strong> area.</li>
-              <li>Use Dev Controls to simulate declined cards or network timeouts.</li>
-            </ul>
+          {/* Branding */}
+          <div className="flex justify-between items-center mb-4 px-2">
+             <div className="text-gray-400 font-bold tracking-widest text-xs">vPOS S-200</div>
+             <div className="flex gap-1">
+                <div className={clsx("w-2 h-2 rounded-full", status !== 'BOOTING' ? 'bg-green-500' : 'bg-red-500 animate-pulse')}></div>
+             </div>
+          </div>
+
+          {/* Components */}
+          <LCDScreen 
+            status={status} 
+            inputBuffer={inputBuffer} 
+            txData={txData} 
+            showDiagnostic={showDiagnostic}
+          />
+          
+          <div className="my-6 h-1 bg-black/30 rounded-full mx-4 shadow-beveled"></div>
+          
+          <PhysicalKeypad onPress={handleKeyPress} />
+
+          {/* Card Reader Slot Visuals */}
+          <div className="absolute -right-4 top-1/3 w-4 h-32 bg-gray-800 rounded-r-lg border-l-4 border-black flex items-center justify-center shadow-lg">
+            <div className="w-1 h-20 bg-black/50 rounded-full"></div>
           </div>
         </div>
 
-      </main>
+        {/* Interaction Modals (The "Inputs") */}
+        {status === 'AWAITING_PAYMENT' && (
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/90 backdrop-blur p-4 rounded-xl shadow-xl border border-gray-200 animate-fade-in flex gap-4">
+             <button 
+              onClick={() => processPayment('INSERT')}
+              className="flex flex-col items-center gap-2 p-3 hover:bg-blue-50 rounded-lg transition-colors"
+             >
+                <CreditCard className="text-blue-600" />
+                <span className="text-xs font-bold">Insert Chip</span>
+             </button>
+             <button 
+              onClick={() => processPayment('TAP')}
+              className="flex flex-col items-center gap-2 p-3 hover:bg-green-50 rounded-lg transition-colors"
+             >
+                <Nfc className="text-green-600" />
+                <span className="text-xs font-bold">Tap Card</span>
+             </button>
+             <button 
+              onClick={() => processPayment('SWIPE')}
+              className="flex flex-col items-center gap-2 p-3 hover:bg-purple-50 rounded-lg transition-colors"
+             >
+                <Smartphone className="text-purple-600" />
+                <span className="text-xs font-bold">Apple Pay</span>
+             </button>
+          </div>
+        )}
+
+      </div>
+
+      {/* Side Drawer Toggle (Mobile) */}
+      <button 
+        className="md:hidden fixed bottom-4 right-4 bg-black text-white p-3 rounded-full shadow-lg z-50"
+        onClick={() => setDrawerOpen(!drawerOpen)}
+      >
+        <Settings />
+      </button>
+
+      {/* DevPanel */}
+      <div className={clsx(
+        "fixed md:relative inset-y-0 right-0 z-40 transform transition-transform duration-300 ease-in-out md:transform-none",
+        drawerOpen ? "translate-x-0" : "translate-x-full"
+      )}>
+        <DevPanel 
+          logs={logs} 
+          status={status} 
+          latencyMode={latencyMode}
+          onToggleLatency={setLatencyMode}
+          showDiagnostic={showDiagnostic}
+          onToggleDiagnostic={setShowDiagnostic}
+        />
+      </div>
+
     </div>
   );
 }

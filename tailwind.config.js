@@ -7,30 +7,32 @@ export default {
   theme: {
     extend: {
       colors: {
-        terminal: {
-          surface: '#1A1A1B',
-          screen: '#2D5A27',
-          text: '#A0D995',
-        },
-        action: {
-          confirm: '#22C55E',
-          cancel: '#EF4444',
-          clear: '#F59E0B',
-        },
-        led: {
-          active: '#3B82F6',
-        }
+        'terminal-body': '#2D2D2D',
+        'terminal-dark': '#1A1A1A',
+        'lcd-bg': '#A3B18A',
+        'lcd-text': '#1B1B1B',
+        'status-success': '#4CAF50',
+        'status-error': '#F44336',
       },
       fontFamily: {
-        display: ['"JetBrains Mono"', 'monospace'],
-        ui: ['"Inter"', 'sans-serif'],
+        display: ['"VT323"', 'monospace'],
+        receipt: ['"Courier Prime"', 'monospace'],
+        sans: ['Inter', 'sans-serif'],
       },
       boxShadow: {
-        key: '0px 4px 0px #000000',
-        terminal: '0px 20px 40px -5px rgba(0, 0, 0, 0.4)',
+        'btn-up': '2px 2px 0px #1A1A1A',
+        'btn-dn': 'inset 2px 2px 0px #000',
+        'beveled': 'inset 2px 2px 5px rgba(255,255,255,0.1), inset -2px -2px 5px rgba(0,0,0,0.5)',
       },
-      backgroundImage: {
-        'lcd-scanlines': 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 0, 0, 0.1) 4px)',
+      animation: {
+        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'print': 'printReceipt 2s ease-out forwards',
+      },
+      keyframes: {
+        printReceipt: {
+          '0%': { transform: 'translateY(-100%)', opacity: '0' },
+          '100%': { transform: 'translateY(0)', opacity: '1' },
+        }
       }
     },
   },

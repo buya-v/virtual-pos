@@ -1,24 +1,27 @@
 export type TerminalState = 
+  | 'BOOTING' 
   | 'IDLE' 
-  | 'AMOUNT_ENTRY' 
-  | 'WAITING_FOR_CARD' 
-  | 'AUTHORIZING' 
+  | 'INPUT_AMOUNT' 
+  | 'AWAITING_PAYMENT' 
+  | 'PROCESSING' 
   | 'APPROVED' 
-  | 'DECLINED';
+  | 'DECLINED' 
+  | 'ERROR_COMMS'
+  | 'PRINTING';
 
-export type ResponseCode = '00' | '05' | '51';
+export type InteractionMode = 'INSERT' | 'TAP' | 'SWIPE';
 
-export interface Transaction {
+export interface LogEntry {
   id: string;
-  amount: number;
-  timestamp: Date;
-  status: 'APPROVED' | 'DECLINED';
-  cardType: string;
-  responseCode: ResponseCode;
+  timestamp: string;
+  type: 'REQUEST' | 'RESPONSE' | 'SYSTEM';
+  payload: any;
 }
 
-export interface DevSettings {
-  responseCode: ResponseCode;
-  latencyMs: number;
-  cardType: 'Visa' | 'Mastercard' | 'Amex' | 'Invalid';
+export interface TransactionData {
+  amount: number;
+  currency: string;
+  traceId: string;
+  panMasked?: string;
+  method?: InteractionMode;
 }
